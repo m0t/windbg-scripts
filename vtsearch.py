@@ -9,6 +9,7 @@ iSECPartners
 '''
 
 from pykd import *
+import optparse
 import sys
 
 modules = []
@@ -21,6 +22,16 @@ class fvtEventHandler(eventHandler):
         dprintln("Added %s in module list:" % (moduleName))
         printModules()
         return eventResult.NoChange
+
+def die(msg):
+    sys.stderr.write("[ERROR] " + msg + "\n")
+    sys.exit(-1)
+
+def parse_args():
+    parser = optparse.OptionParser("%prog [some opts] [-L filelist]|[-D fuzzdir]")
+    parser.add_option("-L", "--log", help="write to logfile, default: vtsearch.log", dest="logfile", default="vtsearch.log")
+    parser.add_option("-H", "--heap", help="specify heap", dest="heap", default=None)
+    return parser.parse_args() 
 
 def printModules():
     for module in modules:
@@ -88,8 +99,22 @@ def findVtables(heap):
             printCommand("!heap -x %s" % (entry))
     return found
 
+def start_log(logfile):
+    if dbgCommand(".logopen /d %s" % logfile).find("could not be opened"):
+        return False
+    return True
+
+def close_log(logfile)
+    dbgCommand(".logclose")
+
 def main():
     global heapRequested
+
+    opts, args = parse_args()
+    if opts.heap:
+        heapRequested = opts.heap
+    else:
+        die("specify an heap, see help")
     # Fix symbols
     dbgCommand('.symfix')
     dbgCommand('.reload')
@@ -100,12 +125,19 @@ def main():
     # Get arch and heap params
     #arch32 = (sys.argv[1].lower()=='X86'.lower()) if len(sys.argv)>1 else False
     arch32 = isX86()
-    heapRequested = int(sys.argv[1], 16) if len(sys.argv)>1 else 0
+    #heapRequested = int(sys.argv[1], 16) if len(sys.argv)>1 else 0
     #printModules()
     if not arch32:
         print("dont know if this works on x64")
+    if opts.logfile:
+        if not start_log(opts.logfile):
+            die("Could not open requested logfile")
     if (findVtables(heapRequested) == False ):
         print("Sorry, nothing found! :(")
+
+    if opts.logfile:
+        if not close_log(opts.logfile):
+            die("wtf? error closing log, this odd")
 
 
 if __name__ == '__main__' :
