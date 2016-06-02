@@ -14,6 +14,7 @@ import sys
 
 modules = []
 heapRequested = 0
+logfile = None
 
 class fvtEventHandler(eventHandler):
     def onModuleLoad(self, arg2, moduleName):
@@ -63,7 +64,7 @@ def isX86():
         return False
 
 def getEntries(heap):
-    lines = dbgCommand("!heap -h %s" % hex(heap)).splitlines()
+    lines = dbgCommand("!heap -h %s" % heap).splitlines()
     entries = []
     start = -1
     end = len(lines)-1
@@ -100,15 +101,26 @@ def findVtables(heap):
     return found
 
 def start_log(logfile):
-    if dbgCommand(".logopen /d %s" % logfile).find("could not be opened"):
-        return False
+    path = "C:\\temp" #XXX fix
+    try:
+        out = dbgCommand(".logopen /t %s\\%s" % (path, logfile))
+        if  out.find("could not be opened") >= 0:
+            return False
+        else:
+            print(out)
+    except:
+        close_log(logfile)
+        raise
+        #return False
     return True
 
 def close_log(logfile):
     dbgCommand(".logclose")
+    return True
 
 def main():
     global heapRequested
+    global logfile
 
     opts, args = parse_args()
     if opts.heap:
@@ -136,8 +148,7 @@ def main():
         print("Sorry, nothing found! :(")
 
     if opts.logfile:
-        if not close_log(opts.logfile):
-            die("wtf? error closing log, this odd")
+        close_log(opts.logfile):
 
 
 if __name__ == '__main__' :
