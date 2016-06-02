@@ -28,7 +28,7 @@ def die(msg):
     sys.exit(-1)
 
 def parse_args():
-    parser = optparse.OptionParser("%prog [some opts] [-L filelist]|[-D fuzzdir]")
+    parser = optparse.OptionParser("%prog [some opts] -H <heap>")
     parser.add_option("-L", "--log", help="write to logfile, default: vtsearch.log", dest="logfile", default="vtsearch.log")
     parser.add_option("-H", "--heap", help="specify heap", dest="heap", default=None)
     return parser.parse_args() 
@@ -104,7 +104,7 @@ def start_log(logfile):
         return False
     return True
 
-def close_log(logfile)
+def close_log(logfile):
     dbgCommand(".logclose")
 
 def main():
