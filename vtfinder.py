@@ -39,7 +39,7 @@ def breakhandler64(bp):
     return False
 
 def breakhandler32(bp):
-    print("HeapAlloc break")
+    #print("HeapAlloc break")
     chunkUserAddress = ptrDWord(reg('esp')+0x0C)
     heap = ptrDWord(reg('esp')+0x04)
     if chunkUserAddress!=0 and (heapRequested==0 or heap==heapRequested):
